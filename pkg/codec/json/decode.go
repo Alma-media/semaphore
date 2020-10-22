@@ -6,10 +6,9 @@ import (
 	"github.com/jexia/semaphore/pkg/specs"
 )
 
-func decodeElement(decoder *gojay.Decoder, resource, path string, template *specs.Template, store references.Store) error {
+func decodeElement(decoder *gojay.Decoder, path string, template *specs.Template, store references.Store) error {
 	var reference = specs.PropertyReference{
-		Resource: resource,
-		Path:     path,
+		Path: path,
 	}
 
 	switch {
@@ -18,19 +17,19 @@ func decodeElement(decoder *gojay.Decoder, resource, path string, template *spec
 			Message: references.NewReferenceStore(0),
 		}
 
-		store.StoreReference(resource, path, reference)
+		store.StoreReference("", path, reference)
 
-		object := NewObject(resource, template.Message, reference.Message)
+		object := NewObject(template.Message, reference.Message)
 		if object == nil {
 			break
 		}
 
 		return decoder.Object(object)
 	case template.Repeated != nil:
-		store.StoreReference(resource, path, new(references.Reference))
+		store.StoreReference("", path, new(references.Reference))
 
 		return decoder.Array(
-			NewArray(resource, template.Repeated, &reference, store),
+			NewArray(template.Repeated, &reference, store),
 		)
 	case template.Enum != nil:
 		return NewEnum("", template.Enum, &reference, store).UnmarshalJSONEnum(decoder)

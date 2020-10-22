@@ -100,5 +100,5 @@ func (manager *Manager) Unmarshal(reader io.Reader, store references.Store) erro
 	var decoder = gojay.NewDecoder(buff)
 	defer decoder.Release()
 
-	return decodeElement(decoder, manager.resource, manager.property.Path, manager.property.Template, store)
+	return decodeElement(decoder, manager.property.Name, manager.property.Template, store)
 }

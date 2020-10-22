@@ -10,7 +10,6 @@ import (
 
 // Array represents a JSON array.
 type Array struct {
-	resource  string
 	template  *specs.Template
 	repeated  specs.Repeated
 	reference *specs.PropertyReference
@@ -19,14 +18,13 @@ type Array struct {
 }
 
 // NewArray creates a new array to be JSON encoded/decoded.
-func NewArray(resource string, repeated specs.Repeated, reference *specs.PropertyReference, store references.Store) *Array {
+func NewArray(repeated specs.Repeated, reference *specs.PropertyReference, store references.Store) *Array {
 	template, err := repeated.Template()
 	if err != nil {
 		panic(err)
 	}
 
 	return &Array{
-		resource:  resource,
 		template:  template,
 		repeated:  repeated,
 		reference: reference,
@@ -38,7 +36,7 @@ func NewArray(resource string, repeated specs.Repeated, reference *specs.Propert
 func (array *Array) MarshalJSONArray(encoder *gojay.Encoder) {
 	if array.reference == nil {
 		for _, template := range array.repeated {
-			encodeElement(encoder, "", template, array.store)
+			encodeElement(encoder, template, array.store)
 		}
 
 		return
@@ -53,7 +51,7 @@ func (array *Array) MarshalJSONArray(encoder *gojay.Encoder) {
 	for _, store := range reference.Repeated {
 		array.template.Reference = new(specs.PropertyReference)
 
-		encodeElement(encoder, array.resource, array.template, store)
+		encodeElement(encoder, array.template, store)
 	}
 }
 
@@ -73,7 +71,7 @@ func (array *Array) UnmarshalJSONArray(decoder *gojay.Decoder) error {
 	defer func() { array.index++ }()
 
 	// NOTE: always consume an array even if the reference is not set
-	return decodeElement(decoder, array.resource, fmt.Sprintf("[%d]", array.index), array.template, store)
+	return decodeElement(decoder, fmt.Sprintf("[%d]", array.index), array.template, store)
 }
 
 // IsNil returns whether the given array is null or not.
