@@ -13,7 +13,12 @@ endpoint "typetest" "grpc" {
 flow "typetest" {
   input "semaphore.typetest.Request" {}
 
+  // resource "users" {
+  //   output
+  // }
+
   output "semaphore.typetest.Response" {
     data = "{{ input:data }}"
+    string = "{{ input:data.string }}"
   }
 }

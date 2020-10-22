@@ -13,18 +13,19 @@ func decodeElement(decoder *gojay.Decoder, path string, template *specs.Template
 
 	switch {
 	case template.Message != nil:
-		reference := &references.Reference{
-			Message: references.NewReferenceStore(0),
-		}
+		// reference := &references.Reference{
+		// 	Message: references.NewReferenceStore(0),
+		// }
 
-		store.StoreReference("", path, reference)
+		// store.StoreReference("", path, reference)
 
-		object := NewObject(template.Message, reference.Message)
-		if object == nil {
-			break
-		}
+		// return decoder.Object(
+		// 	NewObject(template.Message, reference.Message),
+		// )
 
-		return decoder.Object(object)
+		return decoder.Object(
+			NewObject(template.Message, store),
+		)
 	case template.Repeated != nil:
 		store.StoreReference("", path, new(references.Reference))
 

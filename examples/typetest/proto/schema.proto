@@ -36,4 +36,6 @@ message Request {
 
 message Response {
 	repeated Data data = 1;
+
+	string string = 2;
 }

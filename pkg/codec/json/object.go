@@ -1,6 +1,8 @@
 package json
 
 import (
+	"log"
+
 	"github.com/francoispqt/gojay"
 	"github.com/jexia/semaphore/pkg/references"
 	"github.com/jexia/semaphore/pkg/specs"
@@ -25,6 +27,8 @@ func NewObject(message specs.Message, store references.Store) *Object {
 // MarshalJSONObject encodes the given specs object into the given gojay encoder.
 func (object *Object) MarshalJSONObject(encoder *gojay.Encoder) {
 	for _, prop := range object.message.SortedProperties() {
+		log.Println("-", prop.Name)
+
 		encodeElementKey(encoder, prop.Name, prop.Template, object.store)
 	}
 }

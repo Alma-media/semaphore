@@ -2,9 +2,6 @@ package references
 
 import (
 	"bytes"
-	"encoding/json"
-	"fmt"
-	"io"
 	"sync"
 
 	"github.com/jexia/semaphore/pkg/specs"
@@ -23,19 +20,19 @@ type Store interface {
 	StoreValue(resource string, path string, value interface{})
 	// StoreEnum stores the given enum on the given path
 	StoreEnum(resource string, path string, enum int32)
-
-	EncodeJSON(io.Writer) error
 }
 
 // Reference represents a value reference
 type Reference struct {
-	Scalar   interface{}
-	Enum     *int32
+	*specs.Property
+
+	Scalar interface{}
+	Enum   *int32
+	// Repeated []*Reference
+	// Message  *Reference
+
 	Repeated []Store
 	Message  Store
-
-	*specs.Property
-	// mutex    sync.Mutex
 }
 
 func (reference *Reference) String() string {
@@ -44,51 +41,6 @@ func (reference *Reference) String() string {
 	reference.EncodeJSON(buff)
 
 	return buff.String()
-}
-
-// EncodeJSON writes JSON reference representation to the provided writer.
-func (reference *Reference) EncodeJSON(writer io.Writer) error {
-	switch {
-	case reference.Scalar != nil:
-		encoded, err := json.Marshal(reference.Scalar)
-		if err != nil {
-			return err
-		}
-
-		_, err = writer.Write(encoded)
-
-		return err
-	case reference.Enum != nil:
-		_, err := writer.Write([]byte(fmt.Sprintf("%d", *reference.Enum)))
-
-		return err // TODO: use enum key
-	case reference.Repeated != nil:
-		if _, err := fmt.Fprint(writer, "["); err != nil {
-			return err
-		}
-
-		for index, storage := range reference.Repeated {
-			if index > 0 {
-				if _, err := fmt.Fprint(writer, ","); err != nil {
-					return err
-				}
-			}
-
-			if err := storage.EncodeJSON(writer); err != nil {
-				return err
-			}
-		}
-
-		_, err := fmt.Fprint(writer, "]")
-
-		return err
-	case reference.Message != nil:
-		return reference.Message.EncodeJSON(writer)
-	default:
-		_, err := fmt.Fprint(writer, "null")
-
-		return err
-	}
 }
 
 // Repeating prepares the given reference to store repeating values
@@ -127,58 +79,20 @@ func (store *store) String() string {
 	return buff.String()
 }
 
-func (store *store) EncodeJSON(writer io.Writer) error {
+// StoreReference stores the given resource, path and value inside the references store
+func (store *store) StoreReference(resource, path string, reference *Reference) {
 	store.mutex.Lock()
 	defer store.mutex.Unlock()
 
-	var separate bool
-
-	if _, err := fmt.Fprint(writer, "{"); err != nil {
-		return err
-	}
-
-	for key, reference := range store.values {
-		if separate {
-			if _, err := fmt.Fprint(writer, ","); err != nil {
-				return err
-			}
-		} else {
-			separate = true
-		}
-
-		if _, err := fmt.Fprintf(writer, "%q:", key); err != nil {
-			return err
-		}
-
-		if err := reference.EncodeJSON(writer); err != nil {
-			return err
-		}
-	}
-
-	_, err := fmt.Fprint(writer, "}")
-
-	return err
-}
-
-// StoreReference stores the given resource, path and value inside the references store
-func (store *store) StoreReference(resource, path string, reference *Reference) {
-	hash := resource + path
-	store.mutex.Lock()
-	store.values[hash] = reference
-	store.mutex.Unlock()
+	store.values[resource+path] = reference
 }
 
 // Load attempts to load the defined value for the given resource and path
 func (store *store) Load(resource string, path string) *Reference {
-	hash := resource + path
 	store.mutex.Lock()
-	ref, has := store.values[hash]
-	store.mutex.Unlock()
-	if !has {
-		return nil
-	}
+	defer store.mutex.Unlock()
 
-	return ref
+	return store.values[resource+path]
 }
 
 // StoreValues stores the given values to the reference store
@@ -306,11 +220,6 @@ func (prefix *PrefixStore) StoreValue(_ string, path string, value interface{}) 
 // StoreEnum stores the given enum for the given resource and path
 func (prefix *PrefixStore) StoreEnum(resource string, path string, enum int32) {
 	prefix.store.StoreEnum(prefix.resource, template.JoinPath(prefix.path, path), enum)
-}
-
-// EncodeJSON writes JSON storage representation into the provided writer.
-func (prefix *PrefixStore) EncodeJSON(writer io.Writer) error {
-	return prefix.store.EncodeJSON(writer)
 }
 
 // Collection represents a map of property references
