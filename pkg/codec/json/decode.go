@@ -15,23 +15,22 @@ func decodeElement(decoder *gojay.Decoder, resource, path string, template *spec
 	switch {
 	case template.Message != nil:
 		reference := &references.Reference{
-			Path:    path,
 			Message: references.NewReferenceStore(0),
 		}
 
-		store.StoreReference(resource, reference)
+		store.StoreReference(resource, path, reference)
 
-		object := NewObject(resource, path, template.Message, reference.Message)
+		object := NewObject(resource, template.Message, reference.Message)
 		if object == nil {
 			break
 		}
 
 		return decoder.Object(object)
 	case template.Repeated != nil:
-		store.StoreReference(resource, &references.Reference{Path: path})
+		store.StoreReference(resource, path, new(references.Reference))
 
 		return decoder.Array(
-			NewArray(resource, path, template.Repeated, &reference, store),
+			NewArray(resource, template.Repeated, &reference, store),
 		)
 	case template.Enum != nil:
 		return NewEnum("", template.Enum, &reference, store).UnmarshalJSONEnum(decoder)

@@ -272,9 +272,7 @@ func (manager *Manager) Decode(protobuf *dynamic.Message, message specs.Message,
 		case types.Array:
 			length := protobuf.FieldLength(field)
 
-			ref := &references.Reference{
-				Path: property.Path,
-			}
+			ref := new(references.Reference)
 
 			ref.Repeating(length)
 
@@ -309,7 +307,7 @@ func (manager *Manager) Decode(protobuf *dynamic.Message, message specs.Message,
 				}
 			}
 
-			store.StoreReference(manager.resource, ref)
+			store.StoreReference(manager.resource, property.Path, ref) // TODO: construct the path
 		case types.Message:
 			nested := protobuf.GetField(field).(*dynamic.Message)
 			manager.Decode(nested, property.Message, store)

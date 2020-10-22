@@ -64,9 +64,10 @@ func (scalar *Scalar) UnmarshalXML(decoder *xml.Decoder, start xml.StartElement)
 
 		switch state {
 		case waitForValue:
-			var reference = &references.Reference{
-				Path: buildPath(scalar.reference.Path, scalar.name),
-			}
+			var (
+				reference = new(references.Reference)
+				path      = buildPath(scalar.reference.Path, scalar.name)
+			)
 
 			switch t := tok.(type) {
 			case xml.CharData:
@@ -74,11 +75,11 @@ func (scalar *Scalar) UnmarshalXML(decoder *xml.Decoder, start xml.StartElement)
 					return err
 				}
 
-				scalar.store.StoreReference(scalar.reference.Resource, reference)
+				scalar.store.StoreReference(scalar.reference.Resource, path, reference)
 
 				state = waitForClose
 			case xml.EndElement:
-				scalar.store.StoreReference(scalar.reference.Resource, reference)
+				scalar.store.StoreReference(scalar.reference.Resource, path, reference)
 				// scalar is closed with nil value
 				return nil
 			default:

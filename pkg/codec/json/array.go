@@ -11,7 +11,6 @@ import (
 // Array represents a JSON array.
 type Array struct {
 	resource  string
-	path      string
 	template  *specs.Template
 	repeated  specs.Repeated
 	reference *specs.PropertyReference
@@ -20,7 +19,7 @@ type Array struct {
 }
 
 // NewArray creates a new array to be JSON encoded/decoded.
-func NewArray(resource, path string, repeated specs.Repeated, reference *specs.PropertyReference, store references.Store) *Array {
+func NewArray(resource string, repeated specs.Repeated, reference *specs.PropertyReference, store references.Store) *Array {
 	template, err := repeated.Template()
 	if err != nil {
 		panic(err)
@@ -28,7 +27,6 @@ func NewArray(resource, path string, repeated specs.Repeated, reference *specs.P
 
 	return &Array{
 		resource:  resource,
-		path:      path,
 		template:  template,
 		repeated:  repeated,
 		reference: reference,
@@ -75,7 +73,7 @@ func (array *Array) UnmarshalJSONArray(decoder *gojay.Decoder) error {
 	defer func() { array.index++ }()
 
 	// NOTE: always consume an array even if the reference is not set
-	return decodeElement(decoder, array.resource, fmt.Sprintf("%s[%d]", array.path, array.index), array.template, store)
+	return decodeElement(decoder, array.resource, fmt.Sprintf("[%d]", array.index), array.template, store)
 }
 
 // IsNil returns whether the given array is null or not.

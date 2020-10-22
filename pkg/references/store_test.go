@@ -43,19 +43,17 @@ func BenchmarkStoreSingleValue(b *testing.B) {
 }
 
 func BenchmarkStoreSingleReference(b *testing.B) {
-	input := "hello world"
-	store := NewReferenceStore(b.N)
-
-	reference := &Reference{
-		Path:   ".",
-		Scalar: input,
-	}
+	var (
+		input     = "hello world"
+		store     = NewReferenceStore(b.N)
+		reference = &Reference{Scalar: input}
+	)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		store.StoreReference("input", reference)
+		store.StoreReference("input", ".", reference)
 	}
 }
 
@@ -158,22 +156,21 @@ func TestEnumJSON(t *testing.T) {
 }
 
 func TestStoreReference(t *testing.T) {
-	store := NewReferenceStore(10)
+	var (
+		store    = NewReferenceStore(10)
+		resource = "input"
+		ref      = &Reference{Scalar: "hello world"}
+		path     = "test"
+	)
 
-	resource := "input"
-	ref := &Reference{
-		Path:   "test",
-		Scalar: "hello world",
-	}
-
-	store.StoreReference(resource, ref)
-	result := store.Load(resource, ref.Path)
+	store.StoreReference(resource, path, ref)
+	result := store.Load(resource, path)
 	if result == nil {
 		t.Fatal("did not return reference")
 	}
 
 	if result.Path != ref.Path {
-		t.Fatalf("unexpected path %s, expected %s", result.Path, ref.Path)
+		t.Fatalf("unexpected path %s, expected %s", result.Path, path)
 	}
 
 	if result.Scalar != ref.Scalar {
@@ -543,17 +540,15 @@ func TestPrefixStoreValues(t *testing.T) {
 }
 
 func TestPrefixStoreReference(t *testing.T) {
-	store := NewReferenceStore(1)
-	resource := "input"
-	prefix := "prefix"
-	path := "key"
+	var (
+		store    = NewReferenceStore(1)
+		resource = "input"
+		prefix   = "prefix"
+		path     = "key"
+		pstore   = NewPrefixStore(store, resource, prefix)
+	)
 
-	value := &Reference{
-		Path: path,
-	}
-
-	pstore := NewPrefixStore(store, resource, prefix)
-	pstore.StoreReference("", value)
+	pstore.StoreReference("", path, new(Reference))
 
 	ref := pstore.Load(resource, template.JoinPath(prefix, path))
 	if ref == nil {
@@ -705,28 +700,23 @@ func TestReferenceString(t *testing.T) {
 
 	var tests = map[string]test{
 		"empty reference to string": {
-			reference: &Reference{
-				Path: "test",
-			},
-			expected: "test:<empty>",
+			reference: new(Reference),
+			expected:  "test:<empty>",
 		},
 		"value to string": {
 			reference: &Reference{
-				Path:   "test",
 				Scalar: 42,
 			},
 			expected: "test:<int(42)>",
 		},
 		"enum to string": {
 			reference: &Reference{
-				Path: "test",
 				Enum: func() *int32 { i := int32(1); return &i }(),
 			},
 			expected: "test:<enum(1)>",
 		},
 		"repeated to string": {
 			reference: &Reference{
-				Path: "test",
 				Repeated: []Store{
 					func() Store {
 						var store = NewReferenceStore(0)
@@ -768,11 +758,9 @@ func TestStoreString(t *testing.T) {
 			store: &store{
 				values: map[string]*Reference{
 					"first": {
-						Path:   "key",
 						Scalar: "value",
 					},
 					"second": {
-						Path:   "key",
 						Scalar: "value",
 					},
 				},
@@ -783,7 +771,6 @@ func TestStoreString(t *testing.T) {
 			store: &store{
 				values: map[string]*Reference{
 					"first": {
-						Path:   "key",
 						Scalar: "value",
 					},
 				},

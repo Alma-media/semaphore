@@ -68,9 +68,10 @@ func (enum *Enum) UnmarshalXML(decoder *xml.Decoder, _ xml.StartElement) error {
 
 		switch state {
 		case waitForValue:
-			var reference = &references.Reference{
-				Path: buildPath(enum.reference.Path, enum.name),
-			}
+			var (
+				reference = new(references.Reference)
+				path      = buildPath(enum.reference.Path, enum.name)
+			)
 
 			switch t := tok.(type) {
 			case xml.CharData:
@@ -82,9 +83,9 @@ func (enum *Enum) UnmarshalXML(decoder *xml.Decoder, _ xml.StartElement) error {
 				reference.Enum = &enumValue.Position
 				state = waitForClose
 
-				enum.store.StoreReference(enum.reference.Resource, reference)
+				enum.store.StoreReference(enum.reference.Resource, path, reference)
 			case xml.EndElement:
-				enum.store.StoreReference(enum.reference.Resource, reference)
+				enum.store.StoreReference(enum.reference.Resource, path, reference)
 				// enum is closed with nil value
 				return nil
 			default:

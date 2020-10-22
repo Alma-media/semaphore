@@ -1,10 +1,10 @@
 package references
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
-	"strings"
 	"sync"
 
 	"github.com/jexia/semaphore/pkg/specs"
@@ -14,7 +14,7 @@ import (
 // Store represents the reference store interface
 type Store interface {
 	// StoreReference stores the given resource, path and value inside the references store
-	StoreReference(resource /*, path*/ string, reference *Reference)
+	StoreReference(resource, path string, reference *Reference)
 	// Load attempts to load the defined value for the given resource and path
 	Load(resource string, path string) *Reference
 	// StoreValues stores the given values to the reference store
@@ -29,37 +29,24 @@ type Store interface {
 
 // Reference represents a value reference
 type Reference struct {
-	Path     string // TODO: remove
 	Scalar   interface{}
 	Enum     *int32
-	Repeated []Store // TODO: remove
-	Message  Store   // TODO: remove
+	Repeated []Store
+	Message  Store
 
 	*specs.Property
 	// mutex    sync.Mutex
 }
 
 func (reference *Reference) String() string {
-	return reference.string(0)
+	var buff = bytes.NewBuffer(nil)
+
+	reference.EncodeJSON(buff)
+
+	return buff.String()
 }
 
-func (reference *Reference) string(tabs int) string {
-	var prefix = strings.Repeat(" ", tabs)
-
-	switch {
-	case reference.Scalar != nil:
-		return fmt.Sprintf("%s%s:<%T(%v)>", prefix, reference.Path, reference.Scalar, reference.Scalar)
-	case reference.Repeated != nil:
-		return fmt.Sprintf("%s%s:<array(%s)>", prefix, reference.Path, reference.Repeated)
-	case reference.Enum != nil:
-		return fmt.Sprintf("%s%s:<enum(%d)>", prefix, reference.Path, *reference.Enum)
-	case reference.Message != nil:
-		return fmt.Sprintf("%s%s:<object(%s)>", prefix, reference.Path, reference.Message)
-	default:
-		return fmt.Sprintf("%s%s:<empty>", prefix, reference.Path)
-	}
-}
-
+// EncodeJSON writes JSON reference representation to the provided writer.
 func (reference *Reference) EncodeJSON(writer io.Writer) error {
 	switch {
 	case reference.Scalar != nil:
@@ -133,27 +120,11 @@ type store struct {
 }
 
 func (store *store) String() string {
-	return store.string(0)
-}
+	var buff = bytes.NewBuffer(nil)
 
-func (store *store) string(tabs int) string {
-	var (
-		prefix    = strings.Repeat("\t", tabs)
-		separated bool
-		builder   strings.Builder
-	)
+	store.EncodeJSON(buff)
 
-	for key, ref := range store.values {
-		if separated {
-			builder.WriteString(", ")
-		} else {
-			separated = true
-		}
-
-		builder.WriteString(fmt.Sprintf("%s%s:[%s]", prefix, key, ref.string(tabs))) // TODO: tabs + 1
-	}
-
-	return builder.String()
+	return buff.String()
 }
 
 func (store *store) EncodeJSON(writer io.Writer) error {
@@ -190,8 +161,8 @@ func (store *store) EncodeJSON(writer io.Writer) error {
 }
 
 // StoreReference stores the given resource, path and value inside the references store
-func (store *store) StoreReference(resource string, reference *Reference) {
-	hash := resource + reference.Path
+func (store *store) StoreReference(resource, path string, reference *Reference) {
+	hash := resource + path
 	store.mutex.Lock()
 	store.values[hash] = reference
 	store.mutex.Unlock()
@@ -222,23 +193,19 @@ func (store *store) StoreValues(resource string, path string, values map[string]
 
 		repeated, is := val.([]map[string]interface{})
 		if is {
-			reference := &Reference{
-				Path: path,
-			}
+			reference := new(Reference)
 
 			store.NewRepeatingMessages(resource, path, reference, repeated)
-			store.StoreReference(resource, reference)
+			store.StoreReference(resource, path, reference)
 			continue
 		}
 
 		values, is := val.([]interface{})
 		if is {
-			reference := &Reference{
-				Path: path,
-			}
+			reference := new(Reference)
 
 			store.NewRepeating(resource, path, reference, values)
-			store.StoreReference(resource, reference)
+			store.StoreReference(resource, path, reference)
 			continue
 		}
 
@@ -255,21 +222,19 @@ func (store *store) StoreValues(resource string, path string, values map[string]
 // StoreValue stores the given value for the given resource and path
 func (store *store) StoreValue(resource string, path string, value interface{}) {
 	reference := &Reference{
-		Path:   path,
 		Scalar: value,
 	}
 
-	store.StoreReference(resource, reference)
+	store.StoreReference(resource, path, reference)
 }
 
 // StoreEnum stores the given enum for the given resource and path
 func (store *store) StoreEnum(resource string, path string, enum int32) {
 	reference := &Reference{
-		Path: path,
 		Enum: &enum,
 	}
 
-	store.StoreReference(resource, reference)
+	store.StoreReference(resource, path, reference)
 }
 
 // NewRepeatingMessages appends the given repeating messages to the given reference
@@ -324,18 +289,17 @@ func (prefix *PrefixStore) Load(resource string, path string) *Reference {
 }
 
 // StoreReference stores the given resource, path and value inside the references store
-func (prefix *PrefixStore) StoreReference(resource string, reference *Reference) {
-	reference.Path = template.JoinPath(prefix.path, reference.Path)
-	prefix.store.StoreReference(prefix.resource, reference)
+func (prefix *PrefixStore) StoreReference(_, path string, reference *Reference) {
+	prefix.store.StoreReference(prefix.resource, template.JoinPath(prefix.path, reference.Path), reference)
 }
 
 // StoreValues stores the given values to the reference store
-func (prefix *PrefixStore) StoreValues(resource string, path string, values map[string]interface{}) {
+func (prefix *PrefixStore) StoreValues(_ string, path string, values map[string]interface{}) {
 	prefix.store.StoreValues(prefix.resource, template.JoinPath(prefix.path, path), values)
 }
 
 // StoreValue stores the given value for the given resource and path
-func (prefix *PrefixStore) StoreValue(resource string, path string, value interface{}) {
+func (prefix *PrefixStore) StoreValue(_ string, path string, value interface{}) {
 	prefix.store.StoreValue(prefix.resource, template.JoinPath(prefix.path, path), value)
 }
 
@@ -344,6 +308,7 @@ func (prefix *PrefixStore) StoreEnum(resource string, path string, enum int32) {
 	prefix.store.StoreEnum(prefix.resource, template.JoinPath(prefix.path, path), enum)
 }
 
+// EncodeJSON writes JSON storage representation into the provided writer.
 func (prefix *PrefixStore) EncodeJSON(writer io.Writer) error {
 	return prefix.store.EncodeJSON(writer)
 }

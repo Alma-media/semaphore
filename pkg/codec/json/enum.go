@@ -71,9 +71,7 @@ func (enum Enum) UnmarshalJSONEnum(decoder *gojay.Decoder) error {
 	}
 
 	var (
-		reference = &references.Reference{
-			Path: enum.reference.Path,
-		}
+		reference = new(references.Reference)
 		enumValue = enum.enum.Keys[key]
 	)
 
@@ -81,7 +79,7 @@ func (enum Enum) UnmarshalJSONEnum(decoder *gojay.Decoder) error {
 		reference.Enum = &enumValue.Position
 	}
 
-	enum.store.StoreReference(enum.reference.Resource, reference)
+	enum.store.StoreReference(enum.reference.Resource, enum.reference.Path, reference)
 
 	return nil
 }

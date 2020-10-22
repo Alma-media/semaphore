@@ -60,11 +60,10 @@ func (scalar Scalar) UnmarshalJSONScalar(decoder *gojay.Decoder) error {
 	}
 
 	var reference = &references.Reference{
-		Path:   scalar.reference.Path,
 		Scalar: value,
 	}
 
-	scalar.store.StoreReference(scalar.reference.Resource, reference)
+	scalar.store.StoreReference(scalar.reference.Resource, scalar.reference.Path, reference)
 
 	return nil
 }

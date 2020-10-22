@@ -36,8 +36,7 @@ func TestExecutable(t *testing.T) {
 	)
 
 	t.Run("should propagate Reader error", func(t *testing.T) {
-		store.StoreReference("input", &references.Reference{
-			Path:  "authorization",
+		store.StoreReference("input", "authorization", &references.Reference{
 			Scalar: "Bearer expected.jwt",
 		})
 
@@ -55,8 +54,7 @@ func TestExecutable(t *testing.T) {
 	})
 
 	t.Run("should return an error when unable to get authorization value", func(t *testing.T) {
-		store.StoreReference("input", &references.Reference{
-			Path:  "authorization",
+		store.StoreReference("input", "authorization", &references.Reference{
 			Scalar: "invalid.jwt",
 		})
 
@@ -72,8 +70,7 @@ func TestExecutable(t *testing.T) {
 	})
 
 	t.Run("should save the subject to the reference store", func(t *testing.T) {
-		store.StoreReference("input", &references.Reference{
-			Path:  "authorization",
+		store.StoreReference("input", "authorization", &references.Reference{
 			Scalar: "Bearer expected.jwt",
 		})
 

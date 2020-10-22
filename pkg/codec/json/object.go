@@ -1,8 +1,6 @@
 package json
 
 import (
-	"strings"
-
 	"github.com/francoispqt/gojay"
 	"github.com/jexia/semaphore/pkg/references"
 	"github.com/jexia/semaphore/pkg/specs"
@@ -11,17 +9,15 @@ import (
 // Object represents a JSON object.
 type Object struct {
 	resource string
-	path     string
 	message  specs.Message
 	store    references.Store
 	length   int
 }
 
 // NewObject constructs a new object encoder/decoder for the given specs.
-func NewObject(resource, path string, message specs.Message, store references.Store) *Object {
+func NewObject(resource string, message specs.Message, store references.Store) *Object {
 	return &Object{
 		resource: resource,
-		path:     path,
 		message:  message,
 		store:    store,
 		length:   len(message),
@@ -46,7 +42,7 @@ func (object *Object) UnmarshalJSONObject(decoder *gojay.Decoder, key string) er
 		return nil
 	}
 
-	return decodeElement(decoder, object.resource, strings.Join([]string{object.path, key}, "."), property.Template, object.store)
+	return decodeElement(decoder, object.resource, key, property.Template, object.store)
 }
 
 // NKeys returns the amount of available keys inside the given object.

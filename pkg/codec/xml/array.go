@@ -65,11 +65,9 @@ func (array *Array) UnmarshalXML(decoder *xml.Decoder, start xml.StartElement) e
 	)
 
 	if reference == nil {
-		reference = &references.Reference{
-			Path: path,
-		}
+		reference = new(references.Reference)
 
-		array.store.StoreReference(array.reference.Resource, reference)
+		array.store.StoreReference(array.reference.Resource, path, reference)
 	}
 
 	if err := decodeElement(

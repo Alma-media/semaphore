@@ -80,12 +80,10 @@ func (manager *Manager) Unmarshal(metadata MD, store references.Store) {
 			continue
 		}
 
-		ref := &references.Reference{
-			Path:   strings.ToLower(key),
-			Scalar: value,
-		}
+		var ref = &references.Reference{Scalar: value}
 
 		logger.Debug(manager.Context, "Unmarshalling header property", zap.String("key", key))
-		store.StoreReference(manager.Resource, ref)
+
+		store.StoreReference(manager.Resource, strings.ToLower(key), ref)
 	}
 }
