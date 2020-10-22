@@ -21,7 +21,7 @@ func decodeElement(decoder *gojay.Decoder, resource, path string, template *spec
 
 		store.StoreReference(resource, reference)
 
-		object := NewObject(resource, template.Message, reference.Message)
+		object := NewObject(resource, path, template.Message, reference.Message)
 		if object == nil {
 			break
 		}
@@ -31,7 +31,7 @@ func decodeElement(decoder *gojay.Decoder, resource, path string, template *spec
 		store.StoreReference(resource, &references.Reference{Path: path})
 
 		return decoder.Array(
-			NewArray(resource, template.Repeated, &reference, store),
+			NewArray(resource, path, template.Repeated, &reference, store),
 		)
 	case template.Enum != nil:
 		return NewEnum("", template.Enum, &reference, store).UnmarshalJSONEnum(decoder)

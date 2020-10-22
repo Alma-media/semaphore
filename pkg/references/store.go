@@ -1,6 +1,7 @@
 package references
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
@@ -13,7 +14,7 @@ import (
 // Store represents the reference store interface
 type Store interface {
 	// StoreReference stores the given resource, path and value inside the references store
-	StoreReference(resource string, reference *Reference)
+	StoreReference(resource /*, path*/ string, reference *Reference)
 	// Load attempts to load the defined value for the given resource and path
 	Load(resource string, path string) *Reference
 	// StoreValues stores the given values to the reference store
@@ -28,12 +29,14 @@ type Store interface {
 
 // Reference represents a value reference
 type Reference struct {
-	Path     string
+	Path     string // TODO: remove
 	Scalar   interface{}
 	Enum     *int32
-	Repeated []Store
-	Message  Store
-	mutex    sync.Mutex
+	Repeated []Store // TODO: remove
+	Message  Store   // TODO: remove
+
+	*specs.Property
+	// mutex    sync.Mutex
 }
 
 func (reference *Reference) String() string {
@@ -50,6 +53,8 @@ func (reference *Reference) string(tabs int) string {
 		return fmt.Sprintf("%s%s:<array(%s)>", prefix, reference.Path, reference.Repeated)
 	case reference.Enum != nil:
 		return fmt.Sprintf("%s%s:<enum(%d)>", prefix, reference.Path, *reference.Enum)
+	case reference.Message != nil:
+		return fmt.Sprintf("%s%s:<object(%s)>", prefix, reference.Path, reference.Message)
 	default:
 		return fmt.Sprintf("%s%s:<empty>", prefix, reference.Path)
 	}
@@ -58,7 +63,12 @@ func (reference *Reference) string(tabs int) string {
 func (reference *Reference) EncodeJSON(writer io.Writer) error {
 	switch {
 	case reference.Scalar != nil:
-		_, err := writer.Write([]byte(fmt.Sprintf("%v", reference.Scalar)))
+		encoded, err := json.Marshal(reference.Scalar)
+		if err != nil {
+			return err
+		}
+
+		_, err = writer.Write(encoded)
 
 		return err
 	case reference.Enum != nil:
@@ -102,16 +112,12 @@ func (reference *Reference) Repeating(size int) {
 // Append appends the given store to the repeating value reference.
 // This method uses append, it is advised to use Set & Repeating when the length of the repeated message is known.
 func (reference *Reference) Append(val Store) {
-	reference.mutex.Lock()
 	reference.Repeated = append(reference.Repeated, val)
-	reference.mutex.Unlock()
 }
 
 // Set sets the given repeating value reference on the given index
 func (reference *Reference) Set(index int, val Store) {
-	reference.mutex.Lock()
 	reference.Repeated[index] = val
-	reference.mutex.Unlock()
 }
 
 // NewReferenceStore constructs a new store and allocates the references for the given length

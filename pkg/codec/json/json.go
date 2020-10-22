@@ -3,6 +3,7 @@ package json
 import (
 	"bufio"
 	"io"
+	"log"
 
 	"github.com/francoispqt/gojay"
 	"github.com/jexia/semaphore/pkg/codec"
@@ -59,7 +60,7 @@ func (manager *Manager) Marshal(store references.Store) (io.Reader, error) {
 
 	// log.Println(err)
 	// log.Println()
-	// log.Println(store)
+	log.Println(store)
 
 	go func() {
 		defer encoder.Release()
