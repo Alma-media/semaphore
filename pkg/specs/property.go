@@ -2,7 +2,7 @@ package specs
 
 import (
 	"fmt"
-	"net/http"
+	"runtime/debug"
 
 	"github.com/jexia/semaphore/pkg/specs/labels"
 	"github.com/jexia/semaphore/pkg/specs/metadata"
@@ -32,6 +32,7 @@ type Expression interface {
 // Property represents a value property.
 type Property struct {
 	*metadata.Meta
+	Schema      string `json:"schema,omitempty" yaml:"schema,omitempty"`
 	Name        string `json:"name,omitempty" yaml:"name,omitempty"`               // Name represents the name of the given property
 	Path        string `json:"path,omitempty" yaml:"path,omitempty"`               // Path represents the full path to the given property
 	Description string `json:"description,omitempty" yaml:"description,omitempty"` // Description holds the description of the given property used to describe its use
@@ -89,6 +90,7 @@ func (property *Property) ShallowClone() *Property {
 	}
 
 	return &Property{
+		Schema:      property.Schema,
 		Meta:        property.Meta,
 		Position:    property.Position,
 		Description: property.Description,
@@ -106,6 +108,8 @@ func (property *Property) ShallowClone() *Property {
 // Compare checks the given property against the provided one.
 func (property *Property) Compare(expected *Property) error {
 	if expected == nil {
+		debug.PrintStack()
+
 		return fmt.Errorf("unable to check types for '%s' no schema given", property.Path)
 	}
 
@@ -142,25 +146,12 @@ func (property *Property) Define(expected *Property) {
 type ParameterMap struct {
 	*metadata.Meta
 	DependsOn Dependencies         `json:"depends_on,omitempty"`
-	Schema    string               `json:"schema,omitempty"`
 	Params    map[string]*Property `json:"params,omitempty"`
 	Options   Options              `json:"options,omitempty"`
 	Status    int64                `json:"status,omitempty"`
 	Header    Header               `json:"header,omitempty"`
 	Property  *Property            `json:"property,omitempty"`
 	Stack     map[string]*Property `json:"stack,omitempty"`
-}
-
-func NewParameterMap(schema string) ParameterMap {
-	return ParameterMap{
-		Schema:  schema,
-		Options: make(Options),
-		Property: &Property{
-			Label:    labels.Optional,
-			Template: Template{},
-		},
-		Status: http.StatusOK,
-	}
 }
 
 func (parameters *ParameterMap) StatusCode() *Property {
@@ -188,7 +179,6 @@ func (parameters *ParameterMap) Clone() *ParameterMap {
 
 	result := &ParameterMap{
 		Meta:     parameters.Meta,
-		Schema:   parameters.Schema,
 		Params:   make(map[string]*Property, len(parameters.Params)),
 		Options:  make(Options, len(parameters.Options)),
 		Header:   make(Header, len(parameters.Header)),

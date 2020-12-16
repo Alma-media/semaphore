@@ -2,6 +2,7 @@ package compare
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/jexia/semaphore/pkg/broker"
 	"github.com/jexia/semaphore/pkg/broker/logger"
@@ -15,6 +16,9 @@ func Types(ctx *broker.Context, services specs.ServiceList, objects specs.Schema
 	logger.Info(ctx, "Comparing manifest types")
 
 	for _, flow := range flows {
+		log.Println("FLOW INPUT:", flow.GetInput())
+		log.Println("FLOW OUTPUT:", flow.GetOutput())
+
 		err := FlowTypes(ctx, services, objects, flow)
 		if err != nil {
 			return err
@@ -28,23 +32,28 @@ func Types(ctx *broker.Context, services specs.ServiceList, objects specs.Schema
 func FlowTypes(ctx *broker.Context, services specs.ServiceList, objects specs.Schemas, flow specs.FlowInterface) (err error) {
 	logger.Info(ctx, "Comparing flow types", zap.String("flow", flow.GetName()))
 
-	if flow.GetInput() != nil {
-		err = CheckParameterMapTypes(ctx, flow.GetInput(), objects, flow)
+	// omit typecheck if schema is not defined
+	if input := flow.GetInput(); input != nil && input.Property != nil {
+		err = CheckParameterMapTypes(ctx, input, objects, flow)
 		if err != nil {
 			return err
 		}
 	}
 
-	if flow.GetOnError() != nil {
-		err = CheckParameterMapTypes(ctx, flow.GetOnError().Response, objects, flow)
+	if object := flow.GetOnError(); object != nil {
+		err = CheckParameterMapTypes(ctx, object.Response, objects, flow)
 		if err != nil {
 			return err
 		}
 	}
 
 	for _, node := range flow.GetNodes() {
+		log.Println("___NODE:", node.Intermediate)
+
 		err = CallTypes(ctx, services, objects, node, node.Call, flow)
 		if err != nil {
+			log.Println("CALL TYPES ERROR")
+
 			return err
 		}
 
@@ -54,17 +63,19 @@ func FlowTypes(ctx *broker.Context, services specs.ServiceList, objects specs.Sc
 		}
 	}
 
-	if flow.GetOutput() != nil {
-		message := objects.Get(flow.GetOutput().Schema)
+	if output := flow.GetOutput(); output != nil && output.Property != nil {
+		message := objects.Get(output.Property.Schema)
 		if message == nil {
 			return ErrUndefinedObject{
 				Flow:   flow.GetName(),
-				Schema: flow.GetOutput().Schema,
+				Schema: output.Property.Schema,
 			}
 		}
 
 		err = CheckParameterMapTypes(ctx, flow.GetOutput(), objects, flow)
 		if err != nil {
+			log.Println("PARSE OUTPUT ERROR")
+
 			return err
 		}
 	}
@@ -142,13 +153,19 @@ func CheckParameterMapTypes(ctx *broker.Context, parameters *specs.ParameterMap,
 		}
 	}
 
-	schema := objects.Get(parameters.Schema)
-	err := parameters.Property.Compare(schema)
-	if err != nil {
-		return fmt.Errorf("flow '%s' mismatch: %w", flow.GetName(), err)
+	if parameters.Property != nil /*&& parameters.Property.Schema != "" */ {
+		// WACHT: schema is empty here!!!
+
+		schema := objects.Get(parameters.Property.Schema)
+
+		err := parameters.Property.Compare(schema)
+		if err != nil {
+			return fmt.Errorf("flow '%s' mismatch: %w", flow.GetName(), err)
+		}
+
+		parameters.Property.Define(schema)
 	}
 
-	parameters.Property.Define(schema)
 	return nil
 }
 

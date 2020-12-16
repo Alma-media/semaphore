@@ -1,30 +1,30 @@
 flow "" {
-  error {
-    // TODO: allow references
-    status = 400 // "{{ error:status }}"
+    error {
+        // TODO: allow references
+        status = 400 // "{{ error:status }}"
 
-    payload "proto.Error" {
-      message = "{{ error:message }}"
+        payload "proto.Error" {
+            message = "{{ error:message }}"
 
-      message "nested" {
-        message  "nested" {}
-        repeated "" "" {}
-      }
+            message "nested" {
+                message  "nested" {}
+                repeated "" "" {}
+            }
 
-      repeated "" "" {
-        message  "nested" {}
-        repeated "" "" {}
-      }
+            repeated "" "" {
+                message  "nested" {}
+                repeated "" "" {}
+            }
+        }
     }
-  }
 
-  on_error {
-    schema  = "com.Schema"
-    status  = 401
-    message = "flow error message"
+    on_error {
+        schema  = "com.Schema"
+        status  = 401
+        message = "flow error message"
 
-    params {
-      prop = ""
+        params {
+            prop = ""
+        }
     }
-  }
 }

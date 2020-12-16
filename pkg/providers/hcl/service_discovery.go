@@ -2,11 +2,13 @@ package hcl
 
 import (
 	"fmt"
+
 	"github.com/jexia/semaphore/pkg/broker"
 	"github.com/jexia/semaphore/pkg/discovery/consul"
 	"github.com/jexia/semaphore/pkg/specs"
 )
 
+// ParseDiscoveryClients retrieves settings of discovery services.
 func ParseDiscoveryClients(ctx *broker.Context, manifest Manifest) (specs.ServiceDiscoveryClients, error) {
 	configs := manifest.DiscoveryServers
 	if configs == nil {

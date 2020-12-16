@@ -1,6 +1,8 @@
 package hcl
 
 import (
+	"log"
+
 	"github.com/hashicorp/hcl/v2"
 	"github.com/jexia/semaphore/pkg/broker"
 	"github.com/jexia/semaphore/pkg/broker/logger"
@@ -20,7 +22,7 @@ func ParseFlows(ctx *broker.Context, manifest Manifest) (errObject *specs.Parame
 	result := make(specs.FlowListInterface, 0, len(manifest.Flows)+len(manifest.Proxy))
 
 	if manifest.Error != nil {
-		spec, err := ParseIntermediateParameterMap(ctx, manifest.Error)
+		spec, err := ParseIntermediateOutput(ctx, manifest.Error)
 		if err != nil {
 			return errObject, nil, err
 		}
@@ -81,7 +83,7 @@ func ParseIntermediateFlow(ctx *broker.Context, flow Flow) (*specs.Flow, error) 
 		return nil, err
 	}
 
-	output, err := ParseIntermediateParameterMap(ctx, flow.Output)
+	output, err := ParseIntermediateOutput(ctx, flow.Output)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +105,7 @@ func ParseIntermediateFlow(ctx *broker.Context, flow Flow) (*specs.Flow, error) 
 	}
 
 	if flow.Error != nil {
-		spec, err := ParseIntermediateParameterMap(ctx, flow.Error)
+		spec, err := ParseIntermediateOutput(ctx, flow.Error)
 		if err != nil {
 			return nil, err
 		}
@@ -171,8 +173,10 @@ func ParseIntermediateProxy(ctx *broker.Context, proxy Proxy) (*specs.Proxy, err
 
 	if proxy.Input != nil {
 		input := &specs.ParameterMap{
-			Schema: proxy.Input.Params,
 			Header: make(specs.Header, len(proxy.Input.Header)),
+			Property: &specs.Property{
+				Schema: proxy.Input.Params,
+			},
 		}
 
 		if proxy.Input.Options != nil {
@@ -204,7 +208,7 @@ func ParseIntermediateProxy(ctx *broker.Context, proxy Proxy) (*specs.Proxy, err
 	}
 
 	if proxy.Error != nil {
-		spec, err := ParseIntermediateParameterMap(ctx, proxy.Error)
+		spec, err := ParseIntermediateOutput(ctx, proxy.Error)
 		if err != nil {
 			return nil, err
 		}
@@ -248,6 +252,7 @@ func ParseIntermediateProxyForward(ctx *broker.Context, proxy ProxyForward) (*sp
 	return &result, nil
 }
 
+// ParseIntermediateRewriteRules extracts rewrite rules from HCL file.
 func ParseIntermediateRewriteRules(ctx *broker.Context, rewrite []ProxyRewrite) ([]specs.Rewrite, error) {
 	var parsed = make([]specs.Rewrite, len(rewrite), len(rewrite))
 
@@ -348,6 +353,7 @@ func ParseIntermediateNode(ctx *broker.Context, dependencies specs.Dependencies,
 
 	if node.Request != nil {
 		result.Type = specs.NodeCall
+
 	}
 
 	if node.OnError != nil {
@@ -360,7 +366,7 @@ func ParseIntermediateNode(ctx *broker.Context, dependencies specs.Dependencies,
 	}
 
 	if node.Error != nil {
-		spec, err := ParseIntermediateParameterMap(ctx, node.Error)
+		spec, err := ParseIntermediateOutput(ctx, node.Error)
 		if err != nil {
 			return nil, err
 		}
@@ -395,6 +401,8 @@ func ParseIntermediateCall(ctx *broker.Context, call *Call) (*specs.Call, error)
 		Method:  call.Method,
 		Request: results,
 	}
+
+	log.Printf("RESULT: %#v", result.Request)
 
 	return &result, nil
 }
@@ -586,9 +594,11 @@ func ParseIntermediateOnError(ctx *broker.Context, onError *OnError) (*specs.OnE
 		Message: properties["message"],
 	}
 
-	if onError.Schema != "" {
+	if onError.Schema != nil {
 		result.Response = &specs.ParameterMap{
-			Schema: onError.Schema,
+			Property: &specs.Property{
+				Schema: *onError.Schema,
+			},
 		}
 	}
 

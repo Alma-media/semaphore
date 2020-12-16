@@ -1,9 +1,9 @@
 proxy "condition" {
-  if "condition" {
     if "condition" {
-      resource "" {}
+        if "condition" {
+            resource "" {}
+        }
     }
-  }
 
-  forward "" {}
+    forward "" {}
 }

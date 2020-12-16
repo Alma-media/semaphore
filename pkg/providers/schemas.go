@@ -26,15 +26,15 @@ func ResolveFlow(parent *broker.Context, services specs.ServiceList, schemas spe
 	ctx := logger.WithFields(parent, zap.String("flow", flow.GetName()))
 	logger.Info(ctx, "defining flow types")
 
-	if flow.GetInput() != nil {
-		input := schemas.Get(flow.GetInput().Schema)
-		if input == nil {
+	if input := flow.GetInput(); input != nil && input.Property != nil {
+		property := schemas.Get(input.Property.Schema)
+		if property == nil {
 			return ErrUndefinedObject{
-				Schema: flow.GetInput().Schema,
+				Schema: input.Property.Schema,
 			}
 		}
 
-		flow.GetInput().Property = input.Clone()
+		input.Property = property.Clone()
 	}
 
 	if flow.GetOnError() != nil {
@@ -146,8 +146,17 @@ func DefineCall(ctx *broker.Context, services specs.ServiceList, schemas specs.S
 			Property: output.Clone(),
 		}
 
-		call.Request.Schema = method.Input
-		call.Response.Schema = method.Output
+		// if method.Input != "" {
+		call.Request.Property = &specs.Property{
+			Schema: method.Input,
+		}
+		// }
+
+		// if method.Output != "" {
+		call.Response.Property = &specs.Property{
+			Schema: method.Output,
+		}
+		// }
 	}
 
 	if call.Response != nil {
@@ -162,14 +171,14 @@ func DefineCall(ctx *broker.Context, services specs.ServiceList, schemas specs.S
 
 // ResolveParameterMapSchema ensures that the given parameter map schema is available
 func ResolveParameterMapSchema(ctx *broker.Context, schemas specs.Schemas, params *specs.ParameterMap) (_ *specs.Property, err error) {
-	if params == nil || params.Schema == "" {
+	if params == nil || params.Property == nil {
 		return nil, nil
 	}
 
-	schema := schemas.Get(params.Schema)
+	schema := schemas.Get(params.Property.Schema)
 	if schema == nil {
 		return nil, ErrUndefinedObject{
-			Schema: params.Schema,
+			Schema: params.Property.Schema,
 		}
 	}
 

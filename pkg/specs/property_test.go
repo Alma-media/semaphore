@@ -567,8 +567,7 @@ func TestPropertyCompare(t *testing.T) {
 
 func TestParameterMapClone(t *testing.T) {
 	property := &ParameterMap{
-		Meta:   metadata.WithValue(nil, nil, nil),
-		Schema: "com.schema",
+		Meta: metadata.WithValue(nil, nil, nil),
 		Params: map[string]*Property{
 			"sample": {},
 		},
@@ -578,7 +577,9 @@ func TestParameterMapClone(t *testing.T) {
 		Header: Header{
 			"sample": {},
 		},
-		Property: &Property{},
+		Property: &Property{
+			Schema: "com.schema",
+		},
 		Stack: map[string]*Property{
 			"hash": {},
 		},
@@ -593,8 +594,8 @@ func TestParameterMapClone(t *testing.T) {
 		t.Errorf("unexpected meta %+v, expected %+v", result.Meta, property.Meta)
 	}
 
-	if result.Schema != property.Schema {
-		t.Errorf("unexpected schema %+v", result.Schema)
+	if result.Property.Schema != property.Property.Schema {
+		t.Errorf("unexpected schema %+v", result.Property.Schema)
 	}
 
 	if result.Property == nil || result.Property == property.Property {

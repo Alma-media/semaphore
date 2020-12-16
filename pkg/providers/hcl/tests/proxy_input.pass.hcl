@@ -1,31 +1,31 @@
 proxy "echo" {
-  input {}
+    input {}
 
-  forward "" {}
+    forward "" {}
 }
 
 proxy "ping" {
-  input {
-    header = ["Authorization"]
-  }
-
-  forward "" {}
-}
-
-proxy "ping" {
-  input {
-    options {
-      key = "value"
+    input {
+        header = ["Authorization"]
     }
-  }
 
-  forward "" {}
+    forward "" {}
 }
 
 proxy "ping" {
-  input {
-    params = "com.semaphore.Message"
-  }
+    input {
+        options {
+            key = "value"
+        }
+    }
 
-  forward "" {}
+    forward "" {}
+}
+
+proxy "ping" {
+    input {
+        params = "com.semaphore.Message"
+    }
+
+    forward "" {}
 }

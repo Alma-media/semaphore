@@ -1,7 +1,7 @@
 flow "input" {
-  input {
-    header = ["object"]
+    input {
+        header = ["object"]
 
-    payload "com.schema" {}
-  }
+        payload "com.schema" {}
+    }
 }

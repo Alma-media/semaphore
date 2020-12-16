@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"log"
 	"mime"
 
 	"github.com/jexia/semaphore/pkg/broker"
@@ -97,6 +98,16 @@ func Resolve(ctx *broker.Context, mem functions.Collection, options Options) (Co
 	err = dependencies.ResolveFlows(ctx, flows)
 	if err != nil {
 		return Collection{}, err
+	}
+
+	log.Println("SCHEMAS __________________________")
+	for name, item := range schemas {
+		log.Printf("%s: %#v\n\n\n", name, item)
+	}
+
+	log.Println("FLOWS __________________________")
+	for _, item := range schemas {
+		log.Printf("FLOW: %#v\n\n\n", item)
 	}
 
 	err = compare.Types(ctx, services, schemas, flows)

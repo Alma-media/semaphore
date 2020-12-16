@@ -90,7 +90,9 @@ endpoint "checkout" "grpc" {
 }
 
 flow "checkout" {
-	input "services.Order" {}
+	input {
+    payload "services.Order" {}
+  }
 
 	resource "product" {
 		request "services.Warehouse" "GetProduct" {
@@ -104,9 +106,11 @@ flow "checkout" {
 		}
 	}
 
-	output "services.OrderResult" {
-		status = "{{ shipping:status }}"
-		product = "{{ product:. }}"
+	output {
+    payload "services.OrderResult" {
+      status = "{{ shipping:status }}"
+      product = "{{ product:. }}"
+    }
 	}
 }
 ```

@@ -12,7 +12,11 @@ flow "FetchLatestProject" {
     }
 
     resource "query" {
-        request "com.semaphore.Todo" "Get" {}
+        request "com.semaphore.Todo" "Get" {
+            paylaod "com.semaphore.Query" {
+                
+            }
+        }
     }
 
     resource "user" {

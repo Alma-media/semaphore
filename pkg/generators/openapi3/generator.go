@@ -117,7 +117,7 @@ func GenerateOperation(object *Object, endpoint *specs.Endpoint, options *transp
 		}
 
 		if input.Property != nil && flow.GetForward() == nil && RequiresRequestBody(options.Method) {
-			name := input.Schema
+			name := input.Property.Schema
 
 			if !option.Has(IncludeNotReferenced) {
 				// NOTE: we have to generate a unique schema name for the newly generated input
@@ -139,7 +139,7 @@ func GenerateOperation(object *Object, endpoint *specs.Endpoint, options *transp
 			if !option.Has(IncludeNotReferenced) {
 				paths := references.ReferencedResourcePaths(flow, template.InputResource)
 				parameters = references.ReferencedParameterMapPaths(paths, input)
-				parameters.Schema = name
+				parameters.Property.Schema = name
 			}
 
 			IncludeParameterMap(object, parameters)
@@ -147,13 +147,13 @@ func GenerateOperation(object *Object, endpoint *specs.Endpoint, options *transp
 	}
 
 	if output != nil {
-		if input.Property != nil {
+		if input.Property != nil { // TODO: maybe output?
 			result.Responses = map[string]*Response{
 				"default": {
 					Content: map[string]MediaType{
 						string(transport.ApplicationJSON): {
 							Schema: Schema{
-								Reference: fmt.Sprintf("#/components/schemas/%s", output.Schema),
+								Reference: fmt.Sprintf("#/components/schemas/%s", output.Property.Schema),
 							},
 						},
 					},
@@ -202,7 +202,7 @@ func IncludeParameterMap(object *Object, params *specs.ParameterMap) {
 		object.Components.Schemas = map[string]*Schema{}
 	}
 
-	object.Components.Schemas[params.Schema] = GenerateSchema(params.Property.Description, params.Property.Template)
+	object.Components.Schemas[params.Property.Schema] = GenerateSchema(params.Property.Description, params.Property.Template)
 }
 
 // GenerateSchema generates a new schema for the given property

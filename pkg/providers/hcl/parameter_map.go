@@ -1,6 +1,8 @@
 package hcl
 
 import (
+	"net/http"
+
 	"github.com/jexia/semaphore/pkg/broker"
 	"github.com/jexia/semaphore/pkg/specs"
 	"github.com/jexia/semaphore/pkg/specs/labels"
@@ -47,24 +49,15 @@ func ParseIntermediateRepeatedParameterMap(ctx *broker.Context, params RepeatedP
 	}, nil
 }
 
-// ParseIntermediateParameterMap parses the given intermediate parameter map to a spec parameter map
-func ParseIntermediateParameterMap(ctx *broker.Context, params *Output) (*specs.ParameterMap, error) {
+// ParseIntermediateOutput parses the given intermediate parameter map to a spec parameter map
+func ParseIntermediateOutput(ctx *broker.Context, params *Output) (*specs.ParameterMap, error) {
 	if params == nil {
 		return nil, nil
 	}
 
-	var schema string
-
-	if params.OutputParameterMap != nil {
-		schema = params.OutputParameterMap.Schema
-	}
-
-	result := specs.NewParameterMap(schema)
-
-	result.Property.Template.Message = make(specs.Message)
-
-	if params.Status != nil {
-		result.Status = *params.Status
+	result := specs.ParameterMap{
+		Options: make(specs.Options),
+		Status:  http.StatusOK,
 	}
 
 	if params.Header != nil {
@@ -76,18 +69,23 @@ func ParseIntermediateParameterMap(ctx *broker.Context, params *Output) (*specs.
 		result.Header = header
 	}
 
+	if params.OutputParameterMap != nil {
+		message, err := parseBaseParameterMap(ctx, params.BaseParameterMap, "")
+		if err != nil {
+			return nil, err
+		}
+
+		result.Property = &specs.Property{
+			Schema: params.OutputParameterMap.Schema,
+			Label:  labels.Optional,
+			Template: specs.Template{
+				Message: message,
+			},
+		}
+	}
+
 	if params.Options != nil {
 		result.Options = ParseIntermediateSpecOptions(params.Options.Body)
-	}
-
-	if params.OutputParameterMap == nil {
-		return &result, nil
-	}
-
-	var err error
-	result.Property.Message, err = parseBaseParameterMap(ctx, params.OutputParameterMap.BaseParameterMap, "")
-	if err != nil {
-		return nil, err
 	}
 
 	return &result, nil
@@ -101,9 +99,6 @@ func ParseIntermediateCallParameterMap(ctx *broker.Context, params *Call) (*spec
 
 	result := specs.ParameterMap{
 		Options: make(specs.Options),
-		Property: &specs.Property{
-			Label: labels.Optional,
-		},
 	}
 
 	if params.Parameters != nil {
@@ -128,10 +123,21 @@ func ParseIntermediateCallParameterMap(ctx *broker.Context, params *Call) (*spec
 		result.Header = header
 	}
 
-	var err error
-	result.Property.Message, err = parseBaseParameterMap(ctx, params.BaseParameterMap, "")
-	if err != nil {
-		return nil, err
+	if params.BaseParameterMap != nil {
+		message, err := parseBaseParameterMap(ctx, *params.BaseParameterMap, "")
+		if err != nil {
+			return nil, err
+		}
+
+		result.Property = &specs.Property{
+			//
+			// Schema: params.BaseParameterMap.Schema,
+			//
+			Label: labels.Optional,
+			Template: specs.Template{
+				Message: message,
+			},
+		}
 	}
 
 	return &result, nil
@@ -144,9 +150,14 @@ func ParseIntermediateInput(ctx *broker.Context, params *Input) (*specs.Paramete
 	}
 
 	result := &specs.ParameterMap{
-		Schema:  params.InputParameterMap.Schema,
 		Options: make(specs.Options),
 		Header:  make(specs.Header, len(params.Header)),
+	}
+
+	if params.InputParameterMap != nil {
+		result.Property = &specs.Property{
+			Schema: params.InputParameterMap.Schema,
+		}
 	}
 
 	for _, key := range params.Header {

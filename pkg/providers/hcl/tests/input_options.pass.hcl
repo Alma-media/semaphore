@@ -1,9 +1,9 @@
 flow "input" {
-  input {
-    payload "com.schema" {}
+    input {
+        payload "com.schema" {}
 
-    options {
-      sample = ""
+        options {
+            sample = ""
+        }
     }
-  }
 }

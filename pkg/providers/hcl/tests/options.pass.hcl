@@ -1,16 +1,16 @@
 log_level = "debug"
 
 protobuffers = ["$PROTO_IMPORT"]
-openapi3 = ["$OPENAPI3_IMPORT"]
+openapi3     = ["$OPENAPI3_IMPORT"]
 
 grpc {
-  address = "$GRPC"
+    address = "$GRPC"
 }
 
 http {
-  address = "$HTTP"
+    address = "$HTTP"
 }
 
 graphql {
-  address = "$GRAPHQL"
+    address = "$GRAPHQL"
 }

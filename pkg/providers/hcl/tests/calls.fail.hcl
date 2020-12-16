@@ -1,5 +1,5 @@
 flow "echo" {
-  resource {}
+    resource {}
 
-  resource {}
+    resource {}
 }

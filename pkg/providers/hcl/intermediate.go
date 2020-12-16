@@ -83,6 +83,7 @@ type BaseParameterMap struct {
 	Properties hcl.Body               `hcl:",remain"`
 }
 
+// InputParameterMap defines input schema.
 type InputParameterMap struct {
 	Schema string `hcl:"schema,label"`
 }
@@ -95,6 +96,7 @@ type Input struct {
 	Header  []string      `hcl:"header,optional"`
 }
 
+// OutputParameterMap defines flow outputs.
 type OutputParameterMap struct {
 	BaseParameterMap `hcl:",remain"`
 
@@ -160,14 +162,14 @@ type Resource struct {
 
 // OnError intermediate specification.
 type OnError struct {
-	Schema string        `hcl:"schema,optional"`
+	Schema *string       `hcl:"schema,optional"`
 	Params *BlockOptions `hcl:"params,block"`
 	Body   hcl.Body      `hcl:",remain"`
 }
 
 // Call intermediate specification.
 type Call struct {
-	BaseParameterMap `hcl:",remain"`
+	*BaseParameterMap `hcl:"payload,block"`
 
 	Service    string        `hcl:"service,label"`
 	Method     string        `hcl:"method,label"`

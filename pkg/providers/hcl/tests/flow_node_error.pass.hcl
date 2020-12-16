@@ -1,27 +1,27 @@
 flow "" {
-  resource "" {
-    error {
-      // TODO: allow references
-      status = 400 // "{{ error:status }}"
+    resource "" {
+        error {
+            // TODO: allow references
+            status = 400 // "{{ error:status }}"
 
-      payload "proto.Error" {
-        message = "{{ error:message }}"
+            payload "proto.Error" {
+                message = "{{ error:message }}"
 
-        message "nested" {
-          message  "nested" {}
-          repeated "" "" {}
+                message "nested" {
+                    message  "nested" {}
+                    repeated "" "" {}
+                }
+
+                repeated "" "" {
+                    message  "nested" {}
+                    repeated "" "" {}
+                }
+            }
         }
 
-        repeated "" "" {
-          message  "nested" {}
-          repeated "" "" {}
+        on_error {
+            status  = 401
+            message = "node error message"
         }
-      }
     }
-
-    on_error {
-      status  = 401
-      message = "node error message"
-    }
-  }
 }

@@ -17,13 +17,15 @@ flow "greeter" {
 
 	resource "user" {
 		request "semaphore.greeter.Say" "Hello" {
-			name = "{{ input:name }}"
+			payload {
+				name = "{{ input:name }}"
+			}
 		}
 	}
 
 	output {
 		payload "semaphore.greeter.Response" {
-			msg = "{{ user:msg }}"
+			msg	 = "{{ user:msg }}"
 			meta = "{{ user:meta }}"
 		}
 	}

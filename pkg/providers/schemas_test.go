@@ -80,14 +80,18 @@ func TestDefineSchemas(t *testing.T) {
 		"input": {
 			&specs.Flow{
 				Input: &specs.ParameterMap{
-					Schema: "com.mock.message",
+					Property: &specs.Property{
+						Schema: "com.mock.message",
+					},
 				},
 			},
 		},
 		"output": {
 			&specs.Flow{
 				Output: &specs.ParameterMap{
-					Schema: "com.mock.message",
+					Property: &specs.Property{
+						Schema: "com.mock.message",
+					},
 				},
 			},
 		},
@@ -97,7 +101,9 @@ func TestDefineSchemas(t *testing.T) {
 					&specs.Node{
 						Call: &specs.Call{
 							Request: &specs.ParameterMap{
-								Schema: "com.mock.message",
+								Property: &specs.Property{
+									Schema: "com.mock.message",
+								},
 							},
 						},
 					},
@@ -110,7 +116,9 @@ func TestDefineSchemas(t *testing.T) {
 					&specs.Node{
 						Call: &specs.Call{
 							Response: &specs.ParameterMap{
-								Schema: "com.mock.message",
+								Property: &specs.Property{
+									Schema: "com.mock.message",
+								},
 							},
 						},
 					},
@@ -126,7 +134,9 @@ func TestDefineSchemas(t *testing.T) {
 							Method:  "echo",
 							Request: &specs.ParameterMap{},
 							Response: &specs.ParameterMap{
-								Schema: "com.mock.message",
+								Property: &specs.Property{
+									Schema: "com.mock.message",
+								},
 							},
 						},
 					},
@@ -139,7 +149,9 @@ func TestDefineSchemas(t *testing.T) {
 					&specs.Node{
 						OnError: &specs.OnError{
 							Response: &specs.ParameterMap{
-								Schema: "com.mock.message",
+								Property: &specs.Property{
+									Schema: "com.mock.message",
+								},
 							},
 						},
 					},
@@ -152,7 +164,9 @@ func TestDefineSchemas(t *testing.T) {
 					&specs.Node{
 						Condition: &specs.Condition{
 							Params: &specs.ParameterMap{
-								Schema: "com.mock.message",
+								Property: &specs.Property{
+									Schema: "com.mock.message",
+								},
 							},
 						},
 					},
@@ -165,7 +179,9 @@ func TestDefineSchemas(t *testing.T) {
 					&specs.Node{
 						Rollback: &specs.Call{
 							Request: &specs.ParameterMap{
-								Schema: "com.mock.message",
+								Property: &specs.Property{
+									Schema: "com.mock.message",
+								},
 							},
 						},
 					},
@@ -178,7 +194,9 @@ func TestDefineSchemas(t *testing.T) {
 					&specs.Node{
 						Rollback: &specs.Call{
 							Response: &specs.ParameterMap{
-								Schema: "com.mock.message",
+								Property: &specs.Property{
+									Schema: "com.mock.message",
+								},
 							},
 						},
 					},
@@ -189,7 +207,9 @@ func TestDefineSchemas(t *testing.T) {
 			&specs.Flow{
 				OnError: &specs.OnError{
 					Response: &specs.ParameterMap{
-						Schema: "com.mock.message",
+						Property: &specs.Property{
+							Schema: "com.mock.message",
+						},
 					},
 				},
 			},
@@ -217,14 +237,18 @@ func TestDefineSchemasUnknown(t *testing.T) {
 		"input": {
 			&specs.Flow{
 				Input: &specs.ParameterMap{
-					Schema: "com.mock.unknown",
+					Property: &specs.Property{
+						Schema: "com.mock.unknown",
+					},
 				},
 			},
 		},
 		"output": {
 			&specs.Flow{
 				Output: &specs.ParameterMap{
-					Schema: "com.mock.unknown",
+					Property: &specs.Property{
+						Schema: "com.mock.unknown",
+					},
 				},
 			},
 		},
@@ -234,7 +258,9 @@ func TestDefineSchemasUnknown(t *testing.T) {
 					&specs.Node{
 						Call: &specs.Call{
 							Request: &specs.ParameterMap{
-								Schema: "com.mock.unknown",
+								Property: &specs.Property{
+									Schema: "com.mock.unknown",
+								},
 							},
 						},
 					},
@@ -247,7 +273,9 @@ func TestDefineSchemasUnknown(t *testing.T) {
 					&specs.Node{
 						Call: &specs.Call{
 							Response: &specs.ParameterMap{
-								Schema: "com.mock.unknown",
+								Property: &specs.Property{
+									Schema: "com.mock.unknown",
+								},
 							},
 						},
 					},
@@ -302,7 +330,9 @@ func TestDefineSchemasUnknown(t *testing.T) {
 					&specs.Node{
 						OnError: &specs.OnError{
 							Response: &specs.ParameterMap{
-								Schema: "com.mock.unknown",
+								Property: &specs.Property{
+									Schema: "com.mock.unknown",
+								},
 							},
 						},
 					},
@@ -315,7 +345,9 @@ func TestDefineSchemasUnknown(t *testing.T) {
 					&specs.Node{
 						Condition: &specs.Condition{
 							Params: &specs.ParameterMap{
-								Schema: "com.mock.unknown",
+								Property: &specs.Property{
+									Schema: "com.mock.unknown",
+								},
 							},
 						},
 					},
@@ -328,7 +360,9 @@ func TestDefineSchemasUnknown(t *testing.T) {
 					&specs.Node{
 						Rollback: &specs.Call{
 							Request: &specs.ParameterMap{
-								Schema: "com.mock.unknown",
+								Property: &specs.Property{
+									Schema: "com.mock.unknown",
+								},
 							},
 						},
 					},
@@ -341,7 +375,9 @@ func TestDefineSchemasUnknown(t *testing.T) {
 					&specs.Node{
 						Rollback: &specs.Call{
 							Response: &specs.ParameterMap{
-								Schema: "com.mock.unknown",
+								Property: &specs.Property{
+									Schema: "com.mock.unknown",
+								},
 							},
 						},
 					},
@@ -352,7 +388,9 @@ func TestDefineSchemasUnknown(t *testing.T) {
 			&specs.Flow{
 				OnError: &specs.OnError{
 					Response: &specs.ParameterMap{
-						Schema: "com.mock.unknown",
+						Property: &specs.Property{
+							Schema: "com.mock.unknown",
+						},
 					},
 				},
 			},
@@ -521,8 +559,8 @@ func TestUndefinedNestedSchemaProperty(t *testing.T) {
 
 	tests := map[string]*specs.ParameterMap{
 		"single": {
-			Schema: "com.mock.message",
 			Property: &specs.Property{
+				Schema: "com.mock.message",
 				Template: specs.Template{
 					Message: specs.Message{
 						"meta": nil,
@@ -531,8 +569,8 @@ func TestUndefinedNestedSchemaProperty(t *testing.T) {
 			},
 		},
 		"nested": {
-			Schema: "com.mock.message",
 			Property: &specs.Property{
+				Schema: "com.mock.message",
 				Template: specs.Template{
 					Message: specs.Message{
 						"meta": {
@@ -569,8 +607,9 @@ func TestUndefinedNestedSchemaProperty(t *testing.T) {
 
 func TestSettingUndefinedNested(t *testing.T) {
 	test := &specs.ParameterMap{
-		Schema:   "com.mock.message",
-		Property: &specs.Property{},
+		Property: &specs.Property{
+			Schema: "com.mock.message",
+		},
 	}
 
 	ctx := logger.WithLogger(broker.NewBackground())
